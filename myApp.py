@@ -10,6 +10,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import StandardScaler
 
 class App:
     def __init__(self):
@@ -68,9 +69,7 @@ class App:
             self.y = self.data['diagnosis'] 
             self.X = self.data.drop(['diagnosis'], axis=1)
             
-            # normalization 
-            #self.X = (self.X - np.min(self.X))/(np.max(self.X)-np.min(self.X))
-            # data mı verilmeli X mi !!!!!!!!!!!!!!!!!!
+           
             
             correlation_matrix = self.data.corr()
     
@@ -97,6 +96,7 @@ class App:
     def findOptimumModel(self):
         X_train, self.X_test, y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.1, random_state=0)
         
+        
         if self.classifier_name == 'SVM':
             param_grid = {
             'C': [0.1, 1, 10]
@@ -109,6 +109,9 @@ class App:
             return grid_search.best_estimator_
             
         elif self.classifier_name == 'KNN':
+            sc = StandardScaler()
+            X_train = sc.fit_transform(X_train)
+            self.X_test = sc.transform(self.X_test)
             
             param_grid = {
                 'n_neighbors': [1,2,3,4,5,6,7,8,9]
@@ -121,6 +124,9 @@ class App:
             return grid_search.best_estimator_
         
         else:
+            sc = StandardScaler()
+            X_train = sc.fit_transform(X_train)
+            self.X_test = sc.transform(self.X_test)
             param_grid_nb = {
                     'var_smoothing': np.logspace(0,-9, num=10)
                 }       
@@ -133,7 +139,7 @@ class App:
     def generate(self):
         
         my_best_model = self.findOptimumModel()
-        y_pred = my_best_model.predict(self.X_test.values)
+        y_pred = my_best_model.predict(self.X_test)
         
         hata_matrisi = confusion_matrix(self.y_test, y_pred)
         index = ['benign','malignant']
